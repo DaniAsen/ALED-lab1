@@ -57,7 +57,12 @@ public class EEGModel {
 	 */
 	public EEGModel(Measurement[] measurements) {
 		// TODO
-		
+		this.measurements = Arrays.asList(measurements);
+		//también se puede hacer asi:
+		//this.measurements = new Array.List<Measurement>();
+		//for(int i=0; i<measurements.length; i++) {
+		//	this.measurements.add(measurements[i]);
+		//}
 	}
 
 	/**
@@ -131,9 +136,22 @@ public class EEGModel {
 	 */
 	public void saveFile(String fileName) throws IOException {
 		// TODO
-		File f = new File(fileName);
-		FileOutputStream fis = new FileOutputStream(f);
-		PrintStream fid = new PrintStream(fis);
+		File f = new File(fileName); //Crea un objeto File con el nombre del archivo
+		FileOutputStream fis = new FileOutputStream(f);//Abre un flujo de salida hacia este archivo
+		PrintStream fid = new PrintStream(fis);//Crea un PrintStream para escribir texto en el archivo
+		
+		//Recorre todass las posiciones almacenadas en el EGC Model
+		for (int i =0; 1< measurements.size(); i++) {
+			Measurement n = measurements.get(i);
+			fid.print(i % 256); //Escribe el índice de la medición (módulo 256) como primera columna
+			
+			//Recorre todos los canales de la medición
+			for (int j=0; j < n.numChannels(); j++) {
+				fid.print("," + n.getChannel(j));
+			}
+			fid.close();
+		}
+		
 	}
 
 	/**
@@ -252,12 +270,27 @@ public class EEGModel {
 			EEGModel eeg = new EEGModel(args[0]);
 			eeg.plotData();
 			// TODO
+			int validChannels[] = { 8, 9, 10};
+			Filter channelFilter = new FilterExtractChannels(validChannels);
+			EEGModel filteredModel = eeg.filter(channelFilter).filter(channelFilter);
+			filteredModel.plotData();try {
+				filteredModel.saveFile("FilteredData.txt");
+			} catch (IOException e) {
+				System.out.println("Error");
+				e.printStackTrace();
+			}
 			
 		} else {
 			EEGModel eeg = new EEGModel();
 			eeg.createSyntheticData(1000);
 			// TODO
-			
+			try {
+				eeg.saveFile("SyntheticData.txt");
+				EEGModel eggFromFile = new EEGModel("SyntheticData.txt");
+			//	eegFromFile.plotData();
+			}catch (IOException e){
+				System.out.println("Error");
+			}
 		}
 	}
 }
